@@ -15,6 +15,14 @@ using namespace std;
 
 #define NORMAL(x) (sqrt(x(0)*x(0) + x(1)*x(1) + x(2)*x(2)))
 
+#define Lienard_Wiechert(n, beta_prev, beta_dot, R) \
+    (n.cross((n - beta_prev).cross(beta_dot)) / pow(1 - beta_prev.dot(n), 3) / R)
+
+
+Vec3d calcu_field(const Vec3d& n, const Vec3d& beta_prev, const Vec3d& beta_dot, double R){
+    return n.cross((n - beta_prev).cross(beta_dot)) / pow(1 - beta_prev.dot(n), 3) / R;
+}
+
 SpheDetector::SpheDetector(vector<double> dmin, vector<double> dmax, 
     vector<int> nf): dmin(dmin), dmax(dmax), nf(nf), if_approx(true)
 {
@@ -58,19 +66,23 @@ void SpheDetector::init_screen(){
     };
 }
 
-void SpheDetector::INTERP1D(double time_ret, double time_ret_prev, const Vec3d& far_field, int j, int k){
-    int idx_time = (time_ret - this->dmin[0]) / this->d1;
-    int idx_time_prev = (time_ret_prev - this->dmin[0]) / this->d1;
-    for(int l = idx_time_prev; l < idx_time; l++){
-        double temp_partial = (l * this->d1 + this->dmin[0] - time_ret_prev) / (time_ret - time_ret_prev);
-        if(l >= 0 && l < this->emf->get_dim(0) && j >= 0 && j < this->emf->get_dim(1) 
-            && k >= 0 && k < this->emf->get_dim(2))
-            this->emf->data(l, j, k) += temp_partial * far_field[1];
-    }
+void SpheDetector::check_boundary(int l, int j, int k){
+    if(l < 0 || l > this->emf->get_dim(0) || j < 0 || j > this->emf->get_dim(1) 
+        || k < 0 || k > this->emf->get_dim(2)) return;
 }
 
-Vec3d calcu_far_field(const Vec3d& n, const Vec3d& beta_prev, const Vec3d& beta_dot, double R){
-    return n.cross((n - beta_prev).cross(beta_dot)) / pow(1 - beta_prev.dot(n), 3) / R;
+void SpheDetector::deposite_potential(double time_ret, double time_ret_prev, const Vec3d& far_field, int j, int k){
+    int idx_time = (time_ret - this->dmin[0]) / this->d1;
+    int idx_time_prev = (time_ret_prev - this->dmin[0]) / this->d1;
+    double temp_partial, next_temp;
+    for(int l = idx_time_prev; l < idx_time; l++){
+        next_temp = (l + 1) * this->d1 + this->dmin[0];
+        temp_partial = next_temp - time_ret_prev;
+        this->emf->data(l, j, k) += temp_partial * far_field[1];
+        time_ret_prev = next_temp;
+    }
+    temp_partial = time_ret - time_ret_prev;
+    this->emf->data(idx_time, j, k) += temp_partial * far_field[1];
 }
 
 void SpheDetector::cmp_emf_single_particle(const Vec3d& position, const Vec3d& position_prev, 
@@ -119,7 +131,7 @@ void SpheDetector::cmp_emf_single_particle(const Vec3d& position, const Vec3d& p
 
             int idx_time = ((time_ret - this->time_det[0]) / this->d1);
             int idx_time_prev = ((time_ret_prev - this->time_det[0]) / this->d1);
-            Vec3d far_field = charge * calcu_far_field(n, beta_prev, beta_dot, R);
+            Vec3d far_field = charge * Lienard_Wiechert(n, beta_prev, beta_dot, R);
 
             // Interpolation for it
             for (int it = idx_time_prev; it < idx_time; it++) {
