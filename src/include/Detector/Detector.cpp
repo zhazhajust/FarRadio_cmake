@@ -29,8 +29,7 @@ SpheDetector::SpheDetector(vector<double> dmin, vector<double> dmax,
     // init screen positions
     this->init_screen();
     this->time_det = vector<double>(this->nf[0]);
-    for (int k; k < this->nf[0]; k++) {
-
+    for (int k = 0; k < this->nf[0]; k++) {
         double tpos = this->dmin[0] + k * this->d1;
         //double tpos = this->dmin[3]+ this->dmin[0] + k * this->d1;
         this->time_det[k] = tpos;
@@ -104,9 +103,9 @@ void SpheDetector::cmp_emf_single_particle(const Vec3d& position, const Vec3d& p
                     this->screen_potisions->data(j, k, 1) * this->dmin[3] - position(1),
                     this->screen_potisions->data(j, k, 2)* this->dmin[3] - position(2));
                 time_ret = time + n.norm() - this->dmin[3];
-                n = Vec3d(this->screen_potisions->data(j, k, 0) * this->dmin[3] - position(0),
-                    this->screen_potisions->data(j, k, 1) * this->dmin[3] - position(1),
-                    this->screen_potisions->data(j, k, 2) * this->dmin[3] - position(2));
+                n = Vec3d(this->screen_potisions->data(j, k, 0) * this->dmin[3] - position_prev(0),
+                    this->screen_potisions->data(j, k, 1) * this->dmin[3] - position_prev(1),
+                    this->screen_potisions->data(j, k, 2) * this->dmin[3] - position_prev(2));
                 this->R = n.norm();
                 n.normalize();
                 time_ret_prev = time_prev + this->R - this->dmin[3];
@@ -114,12 +113,13 @@ void SpheDetector::cmp_emf_single_particle(const Vec3d& position, const Vec3d& p
 //#endif
             double temp_left = this->time_det[0];
             double temp_right = this->time_det[this->nf[0] - 1];
-            if ((time_ret_prev < temp_left) || (time_ret > temp_right)) return;
 
-            Vec3d far_field = charge * calcu_far_field(n, beta_prev, beta_dot, R);
+            if ((time_ret_prev < temp_left) || (time_ret < temp_left) || 
+            (time_ret > temp_right) || (time_ret_prev > temp_right)) return;
 
             int idx_time = ((time_ret - this->time_det[0]) / this->d1);
             int idx_time_prev = ((time_ret_prev - this->time_det[0]) / this->d1);
+            Vec3d far_field = charge * calcu_far_field(n, beta_prev, beta_dot, R);
 
             // Interpolation for it
             for (int it = idx_time_prev; it < idx_time; it++) {
