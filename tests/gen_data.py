@@ -7,18 +7,17 @@ c = 1
 um = wavelength/lambda_L
 fs = 0.3 * um/c
 
-v = 0.995
-
+v = 0.9
 T = 0.8*um/c
-print(T)
+
 def get_position(time):
-    z = np.sin(time * 2 * pi/2)# * 0.01
-    y = np.cos(time * 2 * pi/2)# * 0.01
+    z = np.sin(time * 2 * pi/200)# * 0.01
+    y = np.cos(time * 2 * pi/200)# * 0.01
     x = time * v
     return np.array([x, y, z]).T
 
 def generate_data():
-    time = np.arange(0, 6000, 0.2)
+    time = np.arange(0, 600, 2)
     dt = time[1] - time[0]
     charge = 1
 
