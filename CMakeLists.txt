@@ -28,12 +28,11 @@ if(MPI_FOUND)
     include_directories(${MPI_INCLUDE_PATH})
     link_libraries(${MPI_LIBRARIES})
     message(STATUS "MPI library found")
+    message(${MPI_LIBRARIES})
 else(MPI_FOUND)
     add_definitions(-DNONMPI)
     message(FATAL_ERROR MPI library not found”)
 endif(MPI_FOUND)
-
-message(${MPI_LIBRARIES})
 
 # 添加include头文件
 include_directories(./src/include ./pybind11/include)
