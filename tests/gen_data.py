@@ -1,5 +1,7 @@
+#!/usr/bin/env python3
 import h5py
 import numpy as np
+
 pi = np.pi
 lambda_L = 0.8
 wavelength = 2 * pi
@@ -7,21 +9,26 @@ c = 1
 um = wavelength/lambda_L
 fs = 0.3 * um/c
 
-v = 0.9
-T = 0.8*um/c
+v = 0.95
+T = 0.8*um/(c - v)
+T0 = 0.8*um/c
 
-def get_position(time):
-    z = np.sin(time * 2 * pi/200)# * 0.01
-    y = np.cos(time * 2 * pi/200)# * 0.01
-    x = time * v
-    return np.array([x, y, z]).T
+def get_position(time, x0 = 0):
+    y = np.sin(time * 2 * pi/T) * 0.05
+    #z = np.cos(time * 2 * pi/T) * 0.05
+    x = time * v + x0
+    z = np.zeros_like(x)
+    return np.array([x, y, z]).T.reshape(-1, 1, 3)
 
 def generate_data():
-    time = np.arange(0, 600, 2)
+    time = np.arange(0, 20000, 2)
     dt = time[1] - time[0]
     charge = 1
 
     position = get_position(time)
+    delta = 3
+    #for i in range(1, 10):
+    #    position = np.concatenate((position, get_position(time, i * -T * delta)), axis=1)
     beta = np.diff(position, axis=0)/dt
     position = position[:-1]
 

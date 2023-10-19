@@ -10,8 +10,11 @@
 #include "Tracer/Tracer.hpp"
 #include "Eigen/Core"
 #include "Eigen/Dense"
-#include "FaradioMPI/FaradioMPI.hpp"
 #include "pybind11/eigen.h"
+
+#ifndef NONMPI
+    #include "FaradioMPI/FaradioMPI.hpp"
+#endif
 
 namespace py = pybind11;
 using namespace std;
@@ -47,11 +50,13 @@ public:
     vector<int> get_nf(){
         return this->nf;
     }
+#ifndef NONMPI
     std::shared_ptr<FaradioMPI> get_mpi(){
         return this->faradio_mpi;
     }
-
-    void INTERP1D(double time_ret, double time_ret_prev, const Vec3d& far_field, int j, int k);
+#endif
+    void check_boundary(int l, int j, int k);
+    void deposite_potential(double time_ret, double time_ret_prev, const Vec3d& far_field, int j, int k);
     void cmp_emf_single_particle(const Vec3d& position, const Vec3d& position_prev, 
     const Vec3d& beta, const Vec3d& beta_prev, double time, double charge, double dt);
     void cmp_emf(Eigen::Ref<const Vec3dArr> position_arr, 
@@ -67,7 +72,9 @@ protected:
     bool if_approx;
     std::shared_ptr<Field3D> emf;
     std::shared_ptr<Field3D> screen_potisions;
+#ifndef NONMPI
     std::shared_ptr<FaradioMPI> faradio_mpi;
+#endif
     vector<double> time_det;
     vector<double> dmax;
     vector<double> dmin;

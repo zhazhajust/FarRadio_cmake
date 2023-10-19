@@ -42,7 +42,9 @@ SpheDetector::SpheDetector(vector<double> dmin, vector<double> dmax,
         //double tpos = this->dmin[3]+ this->dmin[0] + k * this->d1;
         this->time_det[k] = tpos;
     };
+#ifndef NONMPI
     this->faradio_mpi = FaradioMPI::getFaradioMPI();
+#endif
     Address(" SpheDetector constructor called");
 };
 
@@ -170,9 +172,11 @@ void SpheDetector::cmp_emf(Eigen::Ref<const Vec3dArr> position_arr,
 }
 
 void SpheDetector::reduce(){
+#ifndef NONMPI
     if(faradio_mpi->rank() == 0){
         faradio_mpi->reduce(MPI_IN_PLACE, this->emf->get_data(), this->emf->size(), 0);
     }else{
         faradio_mpi->reduce(this->emf->get_data(), nullptr, this->emf->size(), 0);
     }
+#endif
 }

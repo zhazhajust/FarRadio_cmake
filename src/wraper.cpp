@@ -59,17 +59,19 @@ PYBIND11_MODULE(faradio, m) {
     .def("get_dmax", &SpheDetector::get_dmax)
     .def("get_dmin", &SpheDetector::get_dmin)
     .def("get_nf", &SpheDetector::get_nf)
+#ifndef NONMPI
     .def("get_mpi", &SpheDetector::get_mpi)
+#endif
     .def("set_approx", &SpheDetector::set_approx)
     .def("cmp_emf", &SpheDetector::cmp_emf)
     .def("reduce", &SpheDetector::reduce);
-
+#ifndef NONMPI
     py::class_<FaradioMPI, std::shared_ptr<FaradioMPI>>(m, "FaradioMPI")
     .def(py::init<>())
     .def("getFaradioMPI", &FaradioMPI::getFaradioMPI)
     .def("rank", &FaradioMPI::rank)
     .def("size", &FaradioMPI::size);
-
+#endif
     py::class_<Particle>(m, "Particle")
     .def(py::init<std::vector<std::vector<double>>, std::vector<std::vector<double>>,
         std::vector<std::vector<double>>, std::vector<std::vector<double>>,  

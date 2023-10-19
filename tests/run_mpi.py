@@ -4,7 +4,7 @@ import yaml
 import h5py
 import numpy as np
 import matplotlib.pyplot as plt
-from pyfaradio.faradio import SpheDetector
+from pyfaradio.faradio import SpheDetector, FaradioMPI
 
 def load_screen(filename):
     with open(filename, "r") as f:
@@ -21,20 +21,28 @@ def main(filename: str):
     det = SpheDetector(screen["dmin"], screen["dmax"], screen["nf"])
     det.set_approx(screen["if_approx"])
 
-    print("Script name:", sys.argv[0])
-    # Print the command-line arguments
-    print("Arguments:", sys.argv[1:])
+    # MPI init
+    faradio_mpi: FaradioMPI = det.get_mpi()
+    if faradio_mpi.rank() == 0:
+        # Print the script name
+        print("Script name:", sys.argv[0])
+        # Print the command-line arguments
+        print("Arguments:", sys.argv[1:])
 
     # Read Data
     with h5py.File(filename, "r") as f:
         time = f["time"][...]
+    shape = time.shape[0]
+    rank = faradio_mpi.rank()
+    size = faradio_mpi.size()
+    idxl, idxr = divide_chunk(rank, size, shape)
 
     with h5py.File(filename, "r") as f:
-        position_cur = f["position_cur"][...]
-        position_prev = f["position_prev"][...]
-        beta_cur = f["beta_cur"][...]
-        beta_prev = f["beta_prev"][...]
-        time = f["time"][...]
+        position_cur = f["position_cur"][idxl:idxr]
+        position_prev = f["position_prev"][idxl:idxr]
+        beta_cur = f["beta_cur"][idxl:idxr]
+        beta_prev = f["beta_prev"][idxl:idxr]
+        time = f["time"][idxl:idxr]
         charge = f["charge"][...]
         dt = f["dt"][...]
 
@@ -48,18 +56,20 @@ def main(filename: str):
     screen = det.get_screen_potisions()
     data = np.array(field3d.to_memoryview(), copy = False)
 
-    vmax = np.max(np.abs(data[:, 20, :]))
-    vmin = -vmax
-    plt.figure(figsize=[4, 3])
-    plt.pcolormesh(data[:, 20, :], 
-                vmax = vmax, vmin = vmin,
-                cmap = "seismic")
-    plt.colorbar()
-    plt.savefig("test.jpg")
+    # Plot Data
+    if faradio_mpi.rank() == 0:
+        vmax = np.max(np.abs(data[:, 20, :]))
+        vmin = -vmax
+        plt.figure(figsize=[4, 3])
+        plt.pcolormesh(data[:, 20, :], 
+                    vmax = vmax, vmin = vmin,
+                    cmap = "seismic")
+        plt.colorbar()
+        plt.savefig("test.jpg")
 
-    plt.figure(figsize=[4, 3])
-    plt.plot(data[:, 20, 20])
-    plt.savefig("test2.jpg")
+        plt.figure(figsize=[4, 3])
+        plt.plot(data[:, 20, 20])
+        plt.savefig("test2.jpg")
 
 if __name__ == "__main__":
     import sys
