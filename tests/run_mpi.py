@@ -16,7 +16,7 @@ def divide_chunk(rank, size, shape):
     return rank*chunksize, min(shape, (rank + 1)*chunksize)
 
 def main(filename: str):
-    screen = load_screen("/home/yujq/users/caijie/PostProcessing/FarRadio_cmake/tests/screen.yaml")
+    screen = load_screen("./screen.yaml")
     os.environ['OMP_NUM_THREADS'] = str(screen["omp_num_threads"])
     det = SpheDetector(screen["dmin"], screen["dmax"], screen["nf"])
     det.set_approx(screen["if_approx"])
@@ -73,7 +73,7 @@ def main(filename: str):
 
 if __name__ == "__main__":
     import sys
-    filename = "/home/yujq/users/caijie/PostProcessing/FarRadio_cmake/tests/data.h5"
+    filename = "./data.h5"
     args = sys.argv[1:]
     if len(args) >= 1:
         filename = args[0]

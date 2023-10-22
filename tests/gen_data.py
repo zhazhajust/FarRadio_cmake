@@ -9,26 +9,27 @@ c = 1
 um = wavelength/lambda_L
 fs = 0.3 * um/c
 
-v = 0.95
+v = 0.995
 T = 0.8*um/(c - v)
 T0 = 0.8*um/c
 
-def get_position(time, x0 = 0):
-    y = np.sin(time * 2 * pi/T) * 0.05
+def get_position(time, x0 = 0, t0 = 0):
+    y = np.sin((time - t0) * 2 * pi/T) * 0.05
     #z = np.cos(time * 2 * pi/T) * 0.05
-    x = time * v + x0
+    x = (time - t0) * v + x0
     z = np.zeros_like(x)
     return np.array([x, y, z]).T.reshape(-1, 1, 3)
 
 def generate_data():
-    time = np.arange(0, 20000, 2)
+    time = np.arange(0, 50 * T, 0.4)
     dt = time[1] - time[0]
     charge = 1
-
+    delta = 1.0
     position = get_position(time)
-    delta = 3
-    #for i in range(1, 10):
-    #    position = np.concatenate((position, get_position(time, i * -T * delta)), axis=1)
+    for i in range(1, 10):
+        x0 = i * -T * delta
+        t0 = x0
+        position = np.concatenate((position, get_position(time, x0, t0)), axis=1)
     beta = np.diff(position, axis=0)/dt
     position = position[:-1]
 

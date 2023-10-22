@@ -87,6 +87,10 @@ void SpheDetector::deposite_potential(double time_ret, double time_ret_prev, con
     this->emf->data(idx_time, j, k) += temp_partial * far_field[1];
 }
 
+#define CHECK_BOUNDARY(l, j, k) \
+    if(l < 0 || l > this->emf->get_dim(0) || j < 0 || j > this->emf->get_dim(1) \
+        || k < 0 || k > this->emf->get_dim(2)) continue;
+
 void SpheDetector::cmp_emf_single_particle(const Vec3d& position, const Vec3d& position_prev, 
     const Vec3d& beta, const Vec3d& beta_prev, double time, double charge, double dt){
     
@@ -129,7 +133,7 @@ void SpheDetector::cmp_emf_single_particle(const Vec3d& position, const Vec3d& p
             double temp_right = this->time_det[this->nf[0] - 1];
 
             if ((time_ret_prev < temp_left) || (time_ret < temp_left) || 
-            (time_ret > temp_right) || (time_ret_prev > temp_right)) return;
+            (time_ret > temp_right) || (time_ret_prev > temp_right)) continue;
 
             int idx_time = ((time_ret - this->time_det[0]) / this->d1);
             int idx_time_prev = ((time_ret_prev - this->time_det[0]) / this->d1);
@@ -139,12 +143,14 @@ void SpheDetector::cmp_emf_single_particle(const Vec3d& position, const Vec3d& p
             for (int it = idx_time_prev; it < idx_time; it++) {
                 double next_temp = (it + 1) * this->d1 + this->time_det[0]; 
                 double temp = next_temp - time_ret_prev;
+                //CHECK_BOUNDARY(it, j, k);
                 this->emf->data(it, j, k) += temp * far_field[1];
                 time_ret_prev = next_temp;
 
             }
             // Interpolation for tit
             double temp = time_ret - time_ret_prev;
+            //CHECK_BOUNDARY(idx_time, j, k);
             this->emf->data(idx_time, j, k) += temp * far_field[1];
         }
     }

@@ -5,6 +5,7 @@ import h5py
 import numpy as np
 import matplotlib.pyplot as plt
 from pyfaradio.faradio import SpheDetector
+from numpy import pi
 
 def load_screen(filename):
     with open(filename, "r") as f:
@@ -16,10 +17,12 @@ def divide_chunk(rank, size, shape):
     return rank*chunksize, min(shape, (rank + 1)*chunksize)
 
 def main(filename: str):
-    screen = load_screen("/home/yujq/users/caijie/PostProcessing/FarRadio_cmake/tests/screen.yaml")
+    screen = load_screen("./screen.yaml")
     os.environ['OMP_NUM_THREADS'] = str(screen["omp_num_threads"])
     det = SpheDetector(screen["dmin"], screen["dmax"], screen["nf"])
     det.set_approx(screen["if_approx"])
+    axis_time = np.linspace(screen["dmin"][0], screen["dmax"][0], screen["nf"][0])
+    axis_phi = np.linspace(screen["dmin"][2], screen["dmax"][2], screen["nf"][2])
 
     print("Script name:", sys.argv[0])
     # Print the command-line arguments
@@ -48,22 +51,31 @@ def main(filename: str):
     screen = det.get_screen_potisions()
     data = np.array(field3d.to_memoryview(), copy = False)
 
-    vmax = np.max(np.abs(data[:, 20, :]))
+    lambda_L = 0.8
+    wavelength = 2 * pi
+    c = 1
+    um = wavelength/lambda_L
+    fs = 0.3 * um/c
+    vmax = 1e-9 #np.max(np.abs(data[:, 0, :]))
     vmin = -vmax
     plt.figure(figsize=[4, 3])
-    plt.pcolormesh(data[:, 20, :], 
-                vmax = vmax, vmin = vmin,
-                cmap = "seismic")
+    plt.pcolormesh(axis_phi*180/3.14, axis_time/fs, 
+                   data[:, 0, :], 
+                   vmax = vmax, vmin = vmin,
+                   cmap = "seismic")
     plt.colorbar()
+    plt.xlabel("phi [degree]")
+    plt.ylabel("time [fs]")
+    plt.tight_layout()
     plt.savefig("test.jpg")
 
     plt.figure(figsize=[4, 3])
-    plt.plot(data[:, 20, 20])
+    plt.plot(data[:, 0, 50])
     plt.savefig("test2.jpg")
 
 if __name__ == "__main__":
     import sys
-    filename = "/home/yujq/users/caijie/PostProcessing/FarRadio_cmake/tests/data.h5"
+    filename = "./data.h5"
     args = sys.argv[1:]
     if len(args) >= 1:
         filename = args[0]
