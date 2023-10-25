@@ -92,14 +92,14 @@ void SpheDetector::deposite_potential(double time_ret, double time_ret_prev, con
         next_temp = (l + 1) * this->d1 + this->dmin[0];
         temp_partial = next_temp - time_ret_prev;
 #ifdef _OPENMP
-    #pragma omp atomic
+    #pragma omp critical
 #endif
         this->emf->data(l, j, k) += temp_partial * far_field[1];
         time_ret_prev = next_temp;
     }
     temp_partial = time_ret - time_ret_prev;
 #ifdef _OPENMP
-    #pragma omp atomic
+    #pragma omp critical
 #endif
     this->emf->data(idx_time, j, k) += temp_partial * far_field[1];
 }
@@ -116,11 +116,13 @@ void SpheDetector::cmp_emf_single_particle(const Vec3d& position, const Vec3d& p
 
     this->R = this->dmin[3]+(this->nf[0]-1)*this->d3;
 
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
     //theta
     for(int j = 0; j < this->nf[1]; j++){
         //phi
         for(int k = 0; k < this->nf[2]; k++){
-
 //#ifdef APROX
             Vec3d n;
             double time_ret, time_ret_prev;
@@ -161,20 +163,14 @@ void SpheDetector::cmp_emf_single_particle(const Vec3d& position, const Vec3d& p
                 double next_temp = (it + 1) * this->d1 + this->time_det[0]; 
                 double temp = next_temp - time_ret_prev;
                 //CHECK_BOUNDARY(it, j, k);
-#ifdef _OPENMP
-    #pragma omp atomic
-#endif
                 this->emf->data(it, j, k) += temp * far_field[1];
                 time_ret_prev = next_temp;
-
             }
             // Interpolation for tit
             double temp = time_ret - time_ret_prev;
             //CHECK_BOUNDARY(idx_time, j, k);
-#ifdef _OPENMP
-    #pragma omp atomic
-#endif
             this->emf->data(idx_time, j, k) += temp * far_field[1];
+
         }
     }
 }
@@ -184,9 +180,6 @@ void SpheDetector::cmp_emf(Eigen::Ref<const Vec3dArr> position_arr,
     Eigen::Ref<const Vec3dArr> beta_prev_arr, double time, double charge, double dt)
 {
 
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
     for(int i = 0; i < position_arr.rows(); i++){
 
         const Vec3d& beta=beta_arr.row(i);
