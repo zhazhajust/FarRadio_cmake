@@ -13,5 +13,5 @@ nf:
   - 1
   - 100
   - 1
-omp_num_threads: 6
+omp_num_threads: 8
 if_approx: False
