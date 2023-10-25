@@ -3,6 +3,7 @@ import os
 import yaml
 import h5py
 import numpy as np
+from numpy import pi
 import matplotlib.pyplot as plt
 from pyfaradio.faradio import SpheDetector, FaradioMPI
 
@@ -20,6 +21,8 @@ def main(filename: str):
     os.environ['OMP_NUM_THREADS'] = str(screen["omp_num_threads"])
     det = SpheDetector(screen["dmin"], screen["dmax"], screen["nf"])
     det.set_approx(screen["if_approx"])
+    axis_time = np.linspace(screen["dmin"][0], screen["dmax"][0], screen["nf"][0])
+    axis_phi = np.linspace(screen["dmin"][2], screen["dmax"][2], screen["nf"][2])
 
     # MPI init
     faradio_mpi: FaradioMPI = det.get_mpi()
@@ -56,19 +59,25 @@ def main(filename: str):
     screen = det.get_screen_potisions()
     data = np.array(field3d.to_memoryview(), copy = False)
 
+    #Constant
+    lambda_L = 0.8
+    wavelength = 2 * pi
+    c = 1
+    um = wavelength/lambda_L
+    fs = 0.3 * um/c
     # Plot Data
     if faradio_mpi.rank() == 0:
-        vmax = np.max(np.abs(data[:, 20, :]))
+        vmax = 1e-9 #np.max(np.abs(data[:, 0, :]))
         vmin = -vmax
         plt.figure(figsize=[4, 3])
-        plt.pcolormesh(data[:, 20, :], 
+        plt.pcolormesh(axis_phi*180/3.14, axis_time/fs, data[:, 0, :], 
                     vmax = vmax, vmin = vmin,
                     cmap = "seismic")
         plt.colorbar()
         plt.savefig("test.jpg")
 
         plt.figure(figsize=[4, 3])
-        plt.plot(data[:, 20, 20])
+        plt.plot(axis_time/fs, data[:, 0, 20])
         plt.savefig("test2.jpg")
 
 if __name__ == "__main__":
