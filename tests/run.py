@@ -26,7 +26,10 @@ def main(filename: str):
 
     print("Script name:", sys.argv[0])
     # Print the command-line arguments
-    print("Arguments:", sys.argv[1:])
+    if len(sys.argv) > 1:
+        print("Arguments:", sys.argv[1:])
+    else:
+        print("No arguments given, use default data file")
 
     # Read Data
     with h5py.File(filename, "r") as f:

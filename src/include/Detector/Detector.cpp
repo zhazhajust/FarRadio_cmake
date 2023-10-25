@@ -3,26 +3,19 @@
 #include <iostream>
 #include "Detector.hpp"
 
-#ifdef OMP
+#ifdef _OPENMP
     #include <omp.h>
 #endif
 
 using namespace std;
 
-
-
 #define PI acos(-1)
-
 #define Q 1.60217662e-19 // electron charge
 #define C 299792458 // speed of light
-
 #define ALL Eigen::placeholders::all
-
 #define NORMAL(x) (sqrt(x(0)*x(0) + x(1)*x(1) + x(2)*x(2)))
-
 #define Lienard_Wiechert(n, beta_prev, beta_dot, R) \
     (n.cross((n - beta_prev).cross(beta_dot)) / pow(1 - beta_prev.dot(n), 3) / R)
-
 
 Vec3d calcu_field(const Vec3d& n, const Vec3d& beta_prev, const Vec3d& beta_dot, double R){
     return n.cross((n - beta_prev).cross(beta_dot)) / pow(1 - beta_prev.dot(n), 3) / R;
@@ -47,6 +40,19 @@ SpheDetector::SpheDetector(vector<double> dmin, vector<double> dmax,
         //double tpos = this->dmin[3]+ this->dmin[0] + k * this->d1;
         this->time_det[k] = tpos;
     };
+
+#ifdef _OPENMP
+    cout << "OpenMP is used" << endl;
+#pragma omp parallel
+    {
+        int threadid = omp_get_thread_num();
+        if(threadid == 0){
+            int nthreads = omp_get_num_threads();
+            cout << "nthreads: " << nthreads << endl;
+        }
+    }
+#endif
+
 #ifndef NONMPI
     this->faradio_mpi = FaradioMPI::getFaradioMPI();
 #endif
@@ -166,7 +172,7 @@ void SpheDetector::cmp_emf(Eigen::Ref<const Vec3dArr> position_arr,
     Eigen::Ref<const Vec3dArr> beta_prev_arr, double time, double charge, double dt)
 {
 
-#ifdef OMP
+#ifdef _OPENMP
     #pragma omp parallel for
 #endif
     for(int i = 0; i < position_arr.rows(); i++){

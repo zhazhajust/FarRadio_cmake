@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.4 FATAL_ERROR)
 set(CMAKE_CXX_STANDARD 11)
 project(faradio)
 
+# Set Compiler
+#set(CMAKE_C_COMPILER /opt/homebrew/bin/gcc-13)
+#set(CMAKE_CXX_COMPILER /opt/homebrew/bin/g++-13)
+
 # 输出编译信息
 message("Start compile!")
 message("##############")
@@ -13,10 +17,15 @@ aux_source_directory(./src/include/Tracer DIRSRCS)
 # OPENMP
 find_package(OpenMP)
 if(OpenMP_FOUND)
-    add_definitions(-DOMP)
     message(STATUS "found openmp")
     include_directories(${OpenMP_INCLUDE_PATH})
     link_libraries(${OpenMP_LIBRARIES})
+    if(APPLE)
+        add_compile_options(-Xpreprocessor -fopenmp)
+        link_libraries(-lomp)
+    else()
+        add_compile_options(-fopenmp)
+    endif()
 else()
     message("openmp not found!")
 endif()

@@ -9,7 +9,7 @@ c = 1
 um = wavelength/lambda_L
 fs = 0.3 * um/c
 
-v = 0.995
+v = 0.99
 T = 0.8*um/(c - v)
 #T0 = 0.8*um/c
 
@@ -25,7 +25,7 @@ def generate_data():
     time = np.arange(0, 100000, 5)
     dt = time[1] - time[0]
     charge = 1
-    delta = 0.2
+    delta = 0.4
     position = get_position(time)
     for i in range(1, 20):
         x0 = i * -T * delta
