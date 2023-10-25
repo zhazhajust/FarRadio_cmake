@@ -11,7 +11,15 @@ aux_source_directory(./src/include/Field DIRSRCS)
 aux_source_directory(./src/include/Tracer DIRSRCS)
 
 # OPENMP
-add_definitions(-DOMP)
+find_package(OpenMP REQUIRED)
+if(OpenMP_FOUND)
+    add_definitions(-DOMP)
+    message(STATUS "found openmp") 
+    #set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS}, ${OPENMP_C_FLAGS})
+    #set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}, ${OPENMP_CXX_FLAGS})
+else()
+    message("openmp not found!")
+endif()
 
 # DEBUG
 if(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))

@@ -135,7 +135,7 @@ setup(
     packages = find_packages(),  
     include_package_data = True,
     platforms = "any",
-    install_requires = ["pybind11", "numpy", "h5py", "pyyaml", "matplotlib"],  
+    install_requires = ["pybind11", "numpy", "h5py", "pyyaml"],  
 
     ext_modules=[CMakeExtension("pyfaradio.faradio")],
     cmdclass={"build_ext": CMakeBuild},

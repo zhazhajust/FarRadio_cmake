@@ -70,7 +70,7 @@ def main(filename: str):
     plt.savefig("test.jpg")
 
     plt.figure(figsize=[4, 3])
-    plt.plot(data[:, 0, 50])
+    plt.plot(axis_time/fs, data[:, 0, 20])
     plt.savefig("test2.jpg")
 
 if __name__ == "__main__":

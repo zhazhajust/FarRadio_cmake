@@ -1,10 +1,15 @@
+#include <math.h>
 #include <vector>
 #include <iostream>
 #include "Detector.hpp"
 
+#ifdef OMP
+    #include <omp.h>
+#endif
+
 using namespace std;
 
-#include <math.h>
+
 
 #define PI acos(-1)
 
