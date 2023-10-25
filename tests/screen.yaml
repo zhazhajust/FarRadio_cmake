@@ -4,7 +4,7 @@ dmin:
   - -1.0
   - 100000.0
 dmax:
-  - 2000.0
+  - 3000.0
   - 1.58
   - 1.0
   - 100000.0
@@ -13,5 +13,5 @@ nf:
   - 1
   - 100
   - 1
-omp_num_threads: 8
-if_approx: True
+omp_num_threads: 6
+if_approx: False

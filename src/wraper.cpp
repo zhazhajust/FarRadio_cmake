@@ -20,7 +20,6 @@
 
 namespace py = pybind11;
 
-
 PYBIND11_MODULE(faradio, m) {
     m.doc() = "Faradio python interface";
     py::class_<Field3D, std::shared_ptr<Field3D>>(m, "Field3D", py::buffer_protocol())
@@ -64,6 +63,7 @@ PYBIND11_MODULE(faradio, m) {
     .def("set_approx", &SpheDetector::set_approx)
     .def("cmp_emf", &SpheDetector::cmp_emf)
     .def("reduce", &SpheDetector::reduce);
+    
 #ifndef NONMPI
     py::class_<FaradioMPI, std::shared_ptr<FaradioMPI>>(m, "FaradioMPI")
     .def(py::init<>())
