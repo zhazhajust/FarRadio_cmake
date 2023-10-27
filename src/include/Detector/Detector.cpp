@@ -114,7 +114,7 @@ void SpheDetector::cmp_emf_single_particle(const Vec3d& position, const Vec3d& p
     double time_prev = time - dt;
     const Vec3d beta_dot = (beta - beta_prev) / dt;
 
-    this->R = this->dmin[3]+(this->nf[0]-1)*this->d3;
+    //this->R = this->dmin[3]+(this->nf[0]-1)*this->d3;
 
     //theta
     for(int j = 0; j < this->nf[1]; j++){
@@ -127,6 +127,7 @@ void SpheDetector::cmp_emf_single_particle(const Vec3d& position, const Vec3d& p
 //#ifdef APROX
             Vec3d n;
             double time_ret, time_ret_prev;
+            double R;
             if(if_approx){
                 n = Vec3d(this->screen_potisions->data(j, k, 0), 
                     this->screen_potisions->data(j, k, 1), 
@@ -134,6 +135,7 @@ void SpheDetector::cmp_emf_single_particle(const Vec3d& position, const Vec3d& p
                 // ret time points
                 time_ret = time - n.dot(position);
                 time_ret_prev = time_prev - n.dot(position_prev);
+                R = this->dmin[3];
             }
 //#else
             else{
@@ -144,9 +146,9 @@ void SpheDetector::cmp_emf_single_particle(const Vec3d& position, const Vec3d& p
                 n = Vec3d(this->screen_potisions->data(j, k, 0) * this->dmin[3] - position_prev(0),
                     this->screen_potisions->data(j, k, 1) * this->dmin[3] - position_prev(1),
                     this->screen_potisions->data(j, k, 2) * this->dmin[3] - position_prev(2));
-                this->R = n.norm();
+                R = n.norm();
                 n.normalize();
-                time_ret_prev = time_prev + this->R - this->dmin[3];
+                time_ret_prev = time_prev + R - this->dmin[3];
             }
 //#endif
             double temp_left = this->time_det[0];
