@@ -120,7 +120,7 @@ void SpheDetector::cmp_emf_single_particle(const Vec3d& position, const Vec3d& p
     for(int j = 0; j < this->nf[1]; j++){
 #ifdef _OPENMP
 #pragma omp parallel for default(none) shared(j, position, position_prev, \
-    beta, beta_prev, time, time_prev, charge, dt) schedule(dynamic, 1)
+    beta, beta_prev, beta_dot, time, time_prev, charge, dt) schedule(dynamic, 1)
 #endif
         //phi
         for(int k = 0; k < this->nf[2]; k++){

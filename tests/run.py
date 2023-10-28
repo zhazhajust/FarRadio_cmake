@@ -59,7 +59,7 @@ def main(filename: str):
     c = 1
     um = wavelength/lambda_L
     fs = 0.3 * um/c
-    vmax = 1e-9 #np.max(np.abs(data[:, 0, :]))
+    vmax = np.max(np.abs(data[:, 0, :]))
     vmin = -vmax
     plt.figure(figsize=[4, 3])
     plt.pcolormesh(axis_phi*180/3.14, axis_time/fs, 
