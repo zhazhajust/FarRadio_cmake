@@ -5,5 +5,5 @@ _generate/
 *.so
 *.py[cod]
 *.egg-info
-*env*
+# *env*
 **/__pycache__

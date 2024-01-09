@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <iostream>
 #include <cstring>
+#include <hdf5.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
@@ -19,6 +20,7 @@
     } \
 
 namespace py = pybind11;
+
 
 PYBIND11_MODULE(faradio, m) {
     m.doc() = "Faradio python interface";
@@ -63,7 +65,6 @@ PYBIND11_MODULE(faradio, m) {
     .def("set_approx", &SpheDetector::set_approx)
     .def("cmp_emf", &SpheDetector::cmp_emf)
     .def("reduce", &SpheDetector::reduce);
-    
 #ifndef NONMPI
     py::class_<FaradioMPI, std::shared_ptr<FaradioMPI>>(m, "FaradioMPI")
     .def(py::init<>())

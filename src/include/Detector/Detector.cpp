@@ -42,13 +42,14 @@ SpheDetector::SpheDetector(vector<double> dmin, vector<double> dmax,
     };
 
 #ifdef _OPENMP
-    cout << "OpenMP is used" << endl;
+    Address("OpenMP is used");
 #pragma omp parallel
     {
         int threadid = omp_get_thread_num();
         if(threadid == 0){
             int nthreads = omp_get_num_threads();
-            cout << "nthreads: " << nthreads << endl;
+            Address("nthreads: " << nthreads);
+            //cout << "nthreads: " << nthreads << endl;
         }
     }
 #endif
@@ -115,12 +116,21 @@ void SpheDetector::cmp_emf_single_particle(const Vec3d& position, const Vec3d& p
     const Vec3d beta_dot = (beta - beta_prev) / dt;
 
     //this->R = this->dmin[3]+(this->nf[0]-1)*this->d3;
-
+    
     //theta
     for(int j = 0; j < this->nf[1]; j++){
+
+//#ifdef _OPENMP
+//        vector<double> temp_res(this->nf[0]*this->nf[2], 0.0);
+//#endif
+
+        //int tarr_size = this->nf[0]*this->nf[2];
+        //std::shared_ptr<double> tarr(new double[tarr_size](), std::default_delete<double[]>());
+        //memset(tarr, 0, sizeof(tarr));
+
 #ifdef _OPENMP
 #pragma omp parallel for default(none) shared(j, position, position_prev, \
-    beta, beta_prev, beta_dot, time, time_prev, charge, dt) schedule(dynamic, 1)
+    beta, beta_prev, time, time_prev, charge, dt) schedule(dynamic, 1)
 #endif
         //phi
         for(int k = 0; k < this->nf[2]; k++){
@@ -146,6 +156,7 @@ void SpheDetector::cmp_emf_single_particle(const Vec3d& position, const Vec3d& p
                 n = Vec3d(this->screen_potisions->data(j, k, 0) * this->dmin[3] - position_prev(0),
                     this->screen_potisions->data(j, k, 1) * this->dmin[3] - position_prev(1),
                     this->screen_potisions->data(j, k, 2) * this->dmin[3] - position_prev(2));
+
                 R = n.norm();
                 n.normalize();
                 time_ret_prev = time_prev + R - this->dmin[3];
@@ -166,21 +177,39 @@ void SpheDetector::cmp_emf_single_particle(const Vec3d& position, const Vec3d& p
                 double next_temp = (it + 1) * this->d1 + this->time_det[0]; 
                 double temp = next_temp - time_ret_prev;
                 //CHECK_BOUNDARY(it, j, k);
+//#ifdef _OPENMP
+                //tarr.get()[it * this->nf[2] + k] += temp * far_field[1];
+//#else
                 this->emf->data(it, j, k) += temp * far_field[1];
+//#endif
                 time_ret_prev = next_temp;
             }
             // Interpolation for tit
             double temp = time_ret - time_ret_prev;
             //CHECK_BOUNDARY(idx_time, j, k);
+//#ifdef _OPENMP
+            //tarr.get()[idx_time * this->nf[2] + k] += temp * far_field[1];
+//#else
             this->emf->data(idx_time, j, k) += temp * far_field[1];
-
+//#endif 
         }
+
+//#ifdef _OPENMP
+        //for(int i = 0; i < tarr_size; i++){
+        //    int row, col;
+        //    row = i / this->nf[2];
+        //    col = i % this->nf[2];
+        //    this->emf->data(row, j, col) += tarr.get()[i];
+        //}
+//#endif
+
     }
+    return;
 }
 
 void SpheDetector::cmp_emf(Eigen::Ref<const Vec3dArr> position_arr, 
     Eigen::Ref<const Vec3dArr> position_prev_arr, Eigen::Ref<const Vec3dArr> beta_arr, 
-    Eigen::Ref<const Vec3dArr> beta_prev_arr, double time, double charge, double dt)
+    Eigen::Ref<const Vec3dArr> beta_prev_arr, double time, Eigen::Ref<const Vec1dArr> charge, double dt)
 {
 
     for(int i = 0; i < position_arr.rows(); i++){
@@ -189,9 +218,10 @@ void SpheDetector::cmp_emf(Eigen::Ref<const Vec3dArr> position_arr,
         const Vec3d& beta_prev=beta_prev_arr.row(i);
         const Vec3d& position=position_arr.row(i);
         const Vec3d& position_prev=position_prev_arr.row(i);
-        
+        double charge_cur = charge(i, 0);
+        if(std::isnan(beta_prev(0)) || std::isnan(beta(0))) continue;
         this->cmp_emf_single_particle(position, position_prev, beta, beta_prev,
-            time, charge, dt);
+            time, charge_cur, dt);
 
 #ifdef _OPENMP
         //int threadid = omp_get_thread_num();

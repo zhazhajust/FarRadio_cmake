@@ -21,7 +21,9 @@ using namespace std;
 
 typedef Eigen::Tensor<double, 3> Tensor3D;
 typedef Eigen::Matrix<double, 3, 1> Vec3d;
+typedef Eigen::Matrix<double, 3, 1> Vec1d;
 typedef Eigen::Matrix<double, Eigen::Dynamic, 3> Vec3dArr;
+typedef Eigen::Matrix<double, Eigen::Dynamic, 1> Vec1dArr;
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MatrixXd;
 
 class SpheDetector
@@ -61,7 +63,7 @@ public:
     const Vec3d& beta, const Vec3d& beta_prev, double time, double charge, double dt);
     void cmp_emf(Eigen::Ref<const Vec3dArr> position_arr, 
         Eigen::Ref<const Vec3dArr> position_prev_arr, Eigen::Ref<const Vec3dArr> beta_arr, 
-        Eigen::Ref<const Vec3dArr> beta_prev_arr, double time, double charge, double dt);
+        Eigen::Ref<const Vec3dArr> beta_prev_arr, double time, Eigen::Ref<const Vec1dArr> charge, double dt);
     void reduce();
 
     void set_approx(bool if_approx){
